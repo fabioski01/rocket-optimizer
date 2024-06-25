@@ -15,14 +15,16 @@ r_orbit = (Re + h_t)*1000; % circular orbit radius in m
 Vc = sqrt(GM/r_orbit)/1000; % needed orbit circular velocity in km/s
 DeltaV = Vc - Ve; % needed deltaV for specified orbit
 
-% initializing variables
+Mass_ratio = exp(DeltaV/c_eff) % from ideal rocket equation M0/Me
+
+phi = 1 - (1/Mass_ratio) % propellant ratio Mp/M0
+
+% variables
 c_eff = 4; % effective velocity in km/s depends on chosen propulsion system, example for LH2-LOX 4km/s is typical
 Mc = 10000; % construction mass in kg, includes structural and engines but not propellant
-Mp = 60000; % propellant mass in kg, only fuel and oxidizer
+% Mp = 60000; % propellant mass in kg, only fuel and oxidizer
 
 % constraints derived from 1st order ones, which are calculated depending on variables
-Mass_ratio = exp(DeltaV/c_eff) % from ideal rocket equation M0/Me
-phi = 1 - (1/Mass_ratio) % propellant ratio Mp/M0
 
 % computations
 M0 = Mc + Mp + Mu % gross lift off weight, to be minimized
