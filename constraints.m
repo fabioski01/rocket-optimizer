@@ -1,6 +1,7 @@
 function g = constraints(phi,th,L,n_st,n_e)
 
 % Define constant parameters
+alpha = 0; % initialize variable such that matlab does not use its built-in function
 parameters;
 
 num = 100;              % Number of evaluated points per component
