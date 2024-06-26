@@ -170,7 +170,8 @@ sig_axial = Axial/Ac;
 sig_shear = Shear/Ac;
 sig_bending = Bending/Z;
 
-sig_crit = pi*E*I/(L^2*phi*th);
+I = pi/64*(phi^4 - (phi-2*th)^4); % Area moment of inertia of the cross-section [m^4]
+sig_crit = pi*E*I/(L^2*phi*th); % Critical buckling stress
 
 sig_c_max = abs(min(sig_axial+sig_bending));
 sig_t_max = abs(max(sig_axial+sig_bending));
