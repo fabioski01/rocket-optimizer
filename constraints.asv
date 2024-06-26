@@ -84,7 +84,7 @@ Gy = (sum(n.*l)-acc_ang*sum(m.*l.*(CG-cg)))/(sum(m.*l)*g0); % Lateral accelerati
 %% LOADS
 x_last = 0;
 D_last = 0;
-Ix_last = 0;
+II_last = 0;
 F_last = 0;
 Iy_last = 0;
 N_last = 0;
@@ -109,7 +109,7 @@ for i = 1:length(l)
     
     % Axial forces
     D(:,i) = (D_tram + D_last).';
-    Ix(:,i) = (Ix_tram + Ix_last).';
+    Ix(:,i) = (Ix_tram + II_last).';
     F(:,i) = (F_tram + F_last).';
     % Shear forces
     Iy(:,i) = (Iy_tram + Iy_last).';
