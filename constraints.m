@@ -1,7 +1,7 @@
 clc, clear, close all
 
 % Design varibles
-phi = 6; % Rocket stage diameter [m]
+phi = 4; % Rocket stage diameter [m]
 L = 20; % Rocket stage length [m]
 th = 0.005; % Rocket stage wall thickness [m]
 
@@ -9,7 +9,7 @@ n_st = 3; % Number of stages
 n_e = 9; % Number of engines (in the 1st stage)
 
 % Other variables
-phi_pl = 7.5; % Payload fairing diameter [m]
+phi_pl = 5; % Payload fairing diameter [m]
 L_pl = 12; % Payload fairing length [m]
 th_pl = 0.005; % Payload fairing thickness [m]
 
