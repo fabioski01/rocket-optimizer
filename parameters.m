@@ -6,7 +6,8 @@ L_pl = 12;              % Payload fairing length [m]
 th_pl = 0.005;          % Payload fairing thickness [m]
 
 M_pl = 15000;           % Payload mass [kg]
-M_prop = 300000;        % Propellant mass [kg]
+% M_prop = 300000;        % Propellant mass [kg]
+M_prop = [100000, 100000, 100000];        % Propellant mass [kg]
 M_eng_vac = 600;        % Vacuum engine mass [kg]
 M_eng_sl = 150;         % Sea level engine mass [kg]
 
