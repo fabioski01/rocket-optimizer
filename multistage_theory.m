@@ -1,6 +1,6 @@
 %%% Multi-Stage rocket theory
 clc, clear, close all
-
+format long
 % Goal: Minimization of gross lift-off weight
 
 % 1st order Constraint: Specified mission constraints
@@ -53,6 +53,31 @@ fprintf('Optimized Mp: %.2f kg\n', Mp_optimized);
 fprintf('Mass_ratio: %.6f\n', Mass_ratio);
 fprintf('Mass_ratio_check: %.6f\n', Mass_ratio_check);
 
+% Assuming N=3 (3 stages)
+% Assuming identical stages (same c_eff, epsilon, lambda, phi, Mass_ratio)
+N=3; % number of stages
+[M0_tot, Me_tot, lambda_tot, epsilon_tot, ~, ~] = calculate_final_values(Mp_optimized, Mc, Mu) % for entire rocket
+lambda_stage = lambda_tot^(1/N) % because lambda_tot equal the product of the lambda of each stage (for identical stages)
+
+% third stage
+M0_third = Mu/lambda_stage % initial mass of the last (third) stage
+% phi_stage = phi; % identical stages
+% Mp_third = phi_stage*M0_third % propellant mass third stage
+% epsilon_stage = epsilon_tot; % identical stages
+% Mc_third = Mp_third*epsilon_stage % construction mass third stage
+[Mp_third, Mc_third] = calculate_stage_values(phi, M0_third, epsilon_tot)
+M0_third_check = Mc_third + Mp_third + Mu % check of M0 stage 
+
+% second stage
+M0_second = M0_third/lambda_stage % initial mass of the second stage
+[Mp_second, Mc_second] = calculate_stage_values(phi, M0_second, epsilon_tot)
+M0_second_check = Mc_second + Mp_second + M0_third % check of M0 stage 
+
+% first stage
+M0_first = M0_second/lambda_stage % initial mass of the second stage
+[Mp_first, Mc_first] = calculate_stage_values(phi, M0_first, epsilon_tot)
+M0_first_check = Mc_first + Mp_first + M0_second % check of M0 stage 
+
 % Objective function to calculate the difference between Mass_ratio_check and Mass_ratio
 function diff = calculate_mass_ratio_difference(Mp, Mc, Mu, Mass_ratio)
     [M0, Me, ~, ~, ~, Mass_ratio_check] = calculate_final_values(Mp, Mc, Mu);
@@ -69,4 +94,11 @@ function [M0, Me, lambda, epsilon, phi_check, Mass_ratio_check] = calculate_fina
     Mass_ratio_check = M0/Me; % total mass ratio
 end
 
+% Function for stage values
+function [Mp_stage, Mc_stage] = calculate_stage_values(phi, M0_stage, epsilon_tot)
+    phi_stage = phi; % identical stages
+    Mp_stage = phi_stage*M0_stage; % propellant mass stage
+    epsilon_stage = epsilon_tot; % identical stages
+    Mc_stage = Mp_stage*epsilon_stage; % construction mass stage
+end
 
