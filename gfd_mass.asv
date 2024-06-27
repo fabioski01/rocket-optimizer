@@ -54,7 +54,7 @@ semilogx(pert, -ones(size(pert)),'k--');
 title(['Relative error of GFD sensitivities for mesh with ',...
     num2str(n_st),' stages and ',num2str(n_e),' engines.']);
 xlabel('Relative design perturbation');
-ylabel('Error [%] in dM/dphi')
+ylabel('Error [%] in dM_dphi')
 legend('Forward FD','Central FD');
 
 set(gca,'ylim',[-5 5]);
@@ -72,27 +72,11 @@ semilogx(pert, -ones(size(pert)),'k--');
 title(['Relative error of GFD sensitivities for mesh with ',...
     num2str(n_st),' stages and ',num2str(n_e),' engines.']);
 xlabel('Relative design perturbation');
-ylabel('Error [%] in dM/dth')
+ylabel('Error [%] in dM_dth')
 legend('Forward FD','Central FD');
 
 set(gca,'ylim',[-5 5]);
 
-% Sensitivity wrt L
-figure('color','w')
-semilogx(pert, Effd_L,'ro--');
-hold on
-semilogx(pert, Ecfd_L,'b*--');
-% Some additional lines
-semilogx(pert, zeros(size(pert)),'k--');
-semilogx(pert, ones(size(pert)),'k--');
-semilogx(pert, -ones(size(pert)),'k--');
 
-title(['Relative error of GFD sensitivities for mesh with ',...
-    num2str(n_st),' stages and ',num2str(n_e),' engines.']);
-xlabel('Relative design perturbation');
-ylabel('Error [%] in dM/dL')
-legend('Forward FD','Central FD');
-
-set(gca,'ylim',[-5 5]);
 
 end
