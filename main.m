@@ -15,7 +15,7 @@ n_e = 9;    % Number of engines (in the 1st stage)
 parameters;
 
 % Objective function
-% f = structural_mass(phi,th,L,n_st,n_e);
+f = structural_mass(phi,th,L,n_st,n_e);
 
 % Constraints
 g = constraints(phi,th,L,n_st,n_e);

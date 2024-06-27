@@ -20,10 +20,6 @@ V3 = 1/3*pi*l(3)*((phi_pl/2)^2 + (phi(1)/2)^2 + phi_pl/2*phi(1)/2) - ...
 M_f = rho*(V1+V2+V3);
 
 % Compute structural mass
-M_str = 0;
-for i = 1:n_st
-    M_str = M_str + rho*L(i)*pi*((phi(i)/2)^2-(phi(i)/2-th(i))^2);
-end
-M_str = M_str + M_f + M_eng_sl*n_e + M_eng_vac*(n_st-1);
+M_str = rho*L*pi*((phi/2)^2-(phi/2-th)^2)*n_st + M_f + M_eng_sl*n_e + M_eng_vac*(n_st-1);
 
 end
