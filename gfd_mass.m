@@ -19,11 +19,6 @@ dM_dL = rho*pi*((phi/2)^2 -(phi/2-th)^2)*n_st;
 % Relative design perturbations
 pert = 10.^[-15:-1];
 
-% Design perturbations
-h_phi = phi*pert;
-h_th = th*pert;
-h_L = L*pert;
-
 % Compute forward finite difference sensitivities:
 disp('Forward finite differences')
 tic
