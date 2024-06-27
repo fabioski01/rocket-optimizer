@@ -5,13 +5,13 @@ phi_pl = 5;             % Payload fairing diameter [m]
 L_pl = 12;              % Payload fairing length [m]
 th_pl = 0.005;          % Payload fairing thickness [m]
 
-M_prop = [100000, 100000, 100000]; % Propellant mass per stage [kg]
 M_pl = 15000;           % Payload mass [kg]
+
 M_eng_vac = 600;        % Vacuum engine mass [kg]
 M_eng_sl = 150;         % Sea level engine mass [kg]
-
 L_eng_vac = 3;          % Longitude of vacuum engine [m]
 L_eng_sl = 1.5;         % Longitude of sea level engine [m]
+rho_prop = 1000;        % Density of the propellant [kg/m^3]
 
 q = 0.5*1.225*100^2;    % Maximum dynamic pressure [Pa]
 alpha = deg2rad(0.5);   % Angle of attack [deg->rad]
