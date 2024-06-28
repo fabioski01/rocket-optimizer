@@ -22,7 +22,7 @@ CF = CF_vac-pa_pc*MFP_Mt/MFP_Me;
 g50 = gravity(50e3);
 Wp = 119040.01*g50; % Initial propellant weight [N]
 Ws = 10000*g50; % Initial structural weight [N]
-Wu = 400+g50; % payload weight [N]
+Wu = 400*g50; % payload weight [N]
 W = Wp+Ws+Wu; % Initial weight [N]
 F = W*3; % Initial thrust [N]
 Pc = 5.44e6; % Chamber pressure [Pa]
@@ -66,8 +66,8 @@ ang0_new = ang0-kick_angle;
 [t_1st_final, y_1st_final] = ode45(@(t,y) Fsyst_gravity(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S), kick_time:t_step:t_span, [h0_new; v0_new; ang0_new]);
 
 % Concatenate time and results for plotting
-t_1stcombined = [t_1st_initial; t_1st_final];
-y_1stcombined = [y_1st_initial; y_1st_final];
+t_1st_combined = [t_1st_initial; t_1st_final];
+y_1st_combined = [y_1st_initial; y_1st_final];
 
 % SECOND STAGE
 second_stage_initial = y_1st_final(end, :);  % Final [altitude, velocity, angle]
@@ -78,7 +78,7 @@ v0_2nd = second_stage_initial(2);
 ang0_2nd = second_stage_initial(3);
 
 % Solve system of 2nd stage
-[t_2nd, y_2nd] = ode45(@(t,y) Fsyst_gravity(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S), t_span:t_step:2*t_span, [h0_2nd; v0_2nd; ang0_2nd]);
+[t_2nd, y_2nd] = ode45(@(t,y) Fsyst_gravity(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S), t_span:t_step:200, [h0_2nd; v0_2nd; ang0_2nd]);
 
 % THIRD STAGE
 third_stage_initial = y_2nd(end, :);  % Final [altitude, velocity, angle]
@@ -89,51 +89,16 @@ v0_3rd = third_stage_initial(2);
 ang0_3rd = third_stage_initial(3);
 
 % Solve system of 2nd stage
-[t_3rd, y_3rd] = ode45(@(t,y) Fsyst_gravity(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S), 2*t_span:t_step:3*t_span, [h0_3rd; v0_3rd; ang0_3rd]);
+[t_3rd, y_3rd] = ode45(@(t,y) Fsyst_gravity(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S), 200:t_step:400, [h0_3rd; v0_3rd; ang0_3rd]);
 
 % 5) Postprocess
-% 
-% figure
-% subplot(1,3,1)
-% plot(t_1stcombined,y_1stcombined(:,1)/1000)
-% xlim([0 t_span])
-% title('Altitude over time')
-% xlabel('Time [s]')
-% ylabel('Altitude [km]')
-% grid on
-% xline(kick_time, '--r', 'Gravity Turn Start');
-% 
-% subplot(1,3,2)
-% plot(t_1stcombined,y_1stcombined(:,2))
-% xlim([0 t_span])
-% title('Velocity over time')
-% xlabel('Time [s]')
-% ylabel('Velocity [m/s]')
-% grid on
-% xline(kick_time, '--r', 'Gravity Turn Start');
-% 
-% subplot(1,3,3)
-% plot(t_1stcombined,y_1stcombined(:,3)*180/pi)
-% xlim([0 t_span])
-% title('Flight path angle over time')
-% xlabel('Time [s]')
-% ylabel('Flight path angle [º]')
-% grid on
-% xline(kick_time, '--r', 'Gravity Turn Start');
-% Concatenate time and results for plotting
-t_2nd_combined = t_2nd + t_1st_combined(end); % Adjust time for continuity
-t_3rd_combined = t_3rd + t_2nd_combined(end); % Adjust time for continuity
-
-t_combined = [t_1st_combined; t_2nd_combined; t_3rd_combined];
-y_combined = [y_1st_combined; y_2nd; y_3rd];
-
 % Plotting
 figure;
 
 subplot(3, 1, 1);
 plot(t_1st_combined, y_1st_combined(:, 1) / 1000, 'b'); hold on;
-plot(t_2nd_combined, y_2nd(:, 1) / 1000, 'g');
-plot(t_3rd_combined, y_3rd(:, 1) / 1000, 'r');
+plot(t_2nd, y_2nd(:, 1) / 1000, 'g');
+plot(t_3rd, y_3rd(:, 1) / 1000, 'r');
 xlabel('Time [s]');
 ylabel('Altitude [km]');
 title('Altitude over time');
@@ -141,8 +106,8 @@ grid on;
 
 subplot(3, 1, 2);
 plot(t_1st_combined, y_1st_combined(:, 2), 'b'); hold on;
-plot(t_2nd_combined, y_2nd(:, 2), 'g');
-plot(t_3rd_combined, y_3rd(:, 2), 'r');
+plot(t_2nd, y_2nd(:, 2), 'g');
+plot(t_3rd, y_3rd(:, 2), 'r');
 xlabel('Time [s]');
 ylabel('Velocity [m/s]');
 title('Velocity over time');
@@ -150,8 +115,8 @@ grid on;
 
 subplot(3, 1, 3);
 plot(t_1st_combined, y_1st_combined(:, 3) * 180 / pi, 'b'); hold on;
-plot(t_2nd_combined, y_2nd(:, 3) * 180 / pi, 'g');
-plot(t_3rd_combined, y_3rd(:, 3) * 180 / pi, 'r');
+plot(t_2nd, y_2nd(:, 3) * 180 / pi, 'g');
+plot(t_3rd, y_3rd(:, 3) * 180 / pi, 'r');
 xlabel('Time [s]');
 ylabel('Flight path angle [°]');
 title('Flight path angle over time');
