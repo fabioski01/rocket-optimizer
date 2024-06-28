@@ -1,4 +1,4 @@
-function Z = Fsyst(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S)
+function Z = Fsyst_gravity(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S)
 % Function that evaluates the two differential equations
 
 % Z = zeros(2,1);
@@ -37,8 +37,7 @@ Z(1) = y(2)*sin(y(3));
 Z(2) = 1/m*((CF_vac-Pa/Pc*MFP_Mt/MFP_Me)*Pc*At)-rho_ext*y(2)^2*S*Cd/(2*m)-g*sin(y(3));
 
 % Flight path angle rate (gravity turn)
-% Z(3) = -(g/y(2) - y(2)/(Rt+y(1)))*cos(y(3));
-Z(3) = 0; % constant flight path until indicated gravity turn time
+Z(3) = -(g/y(2) - y(2)/(Rt+y(1)))*cos(y(3));
 
 end
 

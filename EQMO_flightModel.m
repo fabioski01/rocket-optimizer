@@ -2,7 +2,7 @@ clear; close all; clc;
 
 %% AN ANALITICAL APPROACH OF A ROCKET TRAJECTORY
 % Jan Canet, Marc Massons, Eduardo Jiménez, Albert Llonch
-
+% Fabio Meloni very small modifications
 % 1) Initial parameters and variables
 %% Me
 Me = sym('Me','real');
@@ -20,10 +20,11 @@ MFP_Mt = sqrt(gamma)*1/(1+(gamma-1)/2*1^2)^(0.5*(gamma+1)/(gamma-1));
 CF = CF_vac-pa_pc*MFP_Mt/MFP_Me;
 
 g50 = gravity(50e3);
-Wp = 50940*g50; % Initial propellant weight [N]
-Ws = 37017*g50; % Initial structural weight [N]
-W = Wp+Ws; % Initial weight [N]
-F = W*1.25; % Initial thrust [N]
+Wp = 119040.01*g50; % Initial propellant weight [N]
+Ws = 10000*g50; % Initial structural weight [N]
+Wu = 400+g50; % payload weight [N]
+W = Wp+Ws+Wu; % Initial weight [N]
+F = W*3; % Initial thrust [N]
 Pc = 5.44e6; % Chamber pressure [Pa]
 At = F/(Pc*CF); % Throat area [m^2]
 S = pi*(2.95/2)^2; % Rocket's maximum cross-section [m^2]
@@ -40,7 +41,7 @@ c_eff = F/m_dot
 
 h0 = 0; % [m]
 v0 = 0; % [m/s]
-ang0 = deg2rad(70); % [deg->rad]
+ang0 = deg2rad(90); % [deg->rad]
 
 % 3) Time span and time step
 
@@ -48,10 +49,10 @@ t_span = Wp/(m_dot*g50); % [s]
 t_step = 1e-3; % [s]
 
 % 4) Solver
-kick_time = 30; % time before starting gravity turn [s]
-kick_angle = deg2rad(25); % kick angle induced for gravity turn [deg->rad]
+kick_time = 35; % time before starting gravity turn [s]
+kick_angle = deg2rad(35); % kick angle induced for gravity turn [deg->rad]
 
-[t_initial, y_initial] = ode45(@(t,y) Fsyst(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S),0:t_step:kick_time,[h0;v0;ang0]);
+[t_initial, y_initial] = ode45(@(t,y) Fsyst(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S), 0:t_step:kick_time, [h0;v0;ang0]);
 
 % Extract final values
 final_values = y_initial(end, :);  % Final [altitude, velocity, angle]
@@ -62,7 +63,7 @@ v0_new = final_values(2);
 ang0_new = ang0-kick_angle;
 
 % Solve second system
-[t_second, y_second] = ode45(@(t,y) Fsyst(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S), kick_time:t_step:t_span, [h0_new; v0_new; ang0_new]);
+[t_second, y_second] = ode45(@(t,y) Fsyst_gravity(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S), kick_time:t_step:t_span, [h0_new; v0_new; ang0_new]);
 
 % Concatenate time and results for plotting
 t_combined = [t_initial; t_second];
