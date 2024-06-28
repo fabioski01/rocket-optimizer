@@ -1,5 +1,5 @@
 %%% Multi-Stage rocket theory
-clc, clear, close all
+clear; close all; clc;
 format long
 % Goal: Minimization of gross lift-off weight
 
@@ -16,7 +16,7 @@ Vc = sqrt(GM/r_orbit)/1000; % needed orbit circular velocity in km/s
 DeltaV = Vc - Ve; % needed deltaV for specified orbit
 
 % initializing variables
-c_eff = 3.21; % effective velocity in km/s depends on chosen propulsion system, example for LH2-LOX 4km/s is typical
+c_eff = 3.0657; % effective velocity in km/s depends on chosen propulsion system, example for LH2-LOX 4km/s is typical
 Mc = 10000; % construction mass in kg, includes structural and engines but not propellant
 % Mp = 60000; % propellant mass in kg, only fuel and oxidizer
 
