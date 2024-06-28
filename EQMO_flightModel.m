@@ -1,4 +1,4 @@
-clear all; clc;
+clear; close all; clc;
 
 %% AN ANALITICAL APPROACH OF A ROCKET TRAJECTORY
 % Jan Canet, Marc Massons, Eduardo Jiménez, Albert Llonch
@@ -39,6 +39,7 @@ m_dot = MFP_Mt*Pc*At/sqrt(Rg*Tc);
 
 h0 = 50e3; % [m]
 v0 = h0/118; % [m/s]
+ang0 = deg2rad(89); % [deg->rad]
 
 % 3) Time span and time step
 
@@ -47,12 +48,12 @@ t_step = 1e-3; % [s]
 
 % 4) Solver
 
-[t0,y0] = ode45(@(t,y) Fsyst(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S),0:t_step:t_span,[h0;v0]);
+[t0,y0] = ode45(@(t,y) Fsyst(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S),0:t_step:t_span,[h0;v0;ang0]);
 
 % 5) Postprocess
 
 figure
-subplot(1,2,1)
+subplot(1,3,1)
 plot(t0,y0(:,1)/1000)
 xlim([0 t_span])
 title('Altitude over time')
@@ -60,12 +61,20 @@ xlabel('Time [s]')
 ylabel('Altitude [km]')
 grid on
 
-subplot(1,2,2)
+subplot(1,3,2)
 plot(t0,y0(:,2))
 xlim([0 t_span])
 title('Velocity over time')
 xlabel('Time [s]')
 ylabel('Velocity [m/s]')
+grid on
+
+subplot(1,3,3)
+plot(t0,y0(:,3)*180/pi)
+xlim([0 t_span])
+title('Flight path angle over time')
+xlabel('Time [s]')
+ylabel('Flight path angle [º]')
 grid on
 
 save t0.mat
