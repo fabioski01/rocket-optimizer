@@ -1,10 +1,5 @@
 function g = constraints(phi,th,L,n_st,n_e)
 
-% phi = [phi3, phi2, phi1]
-% th  = [th3, th2, th1]
-% L   = [L3, L2, L1]
-% Mprop = [Mp3, Mp2, Mp1]
-
 % Define constant parameters
 alpha = 0; % initialize variable such that matlab does not use its built-in function
 parameters;
