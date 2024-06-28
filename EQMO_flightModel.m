@@ -49,15 +49,31 @@ t_step = 1e-3; % [s]
 
 % 4) Solver
 kick_time = 30; % time before starting gravity turn [s]
-kick_angle = degt2rad(25); % kick angle induced for gravity turn [deg->rad]
+kick_angle = deg2rad(25); % kick angle induced for gravity turn [deg->rad]
 
-[t0,y0] = ode45(@(t,y) Fsyst(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S),0:t_step:t_span,[h0;v0;ang0]);
+[t_initial, y_initial] = ode45(@(t,y) Fsyst(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S),0:t_step:kick_time,[h0;v0;ang0]);
+
+% Extract final values
+final_values = y_initial(end, :);  % Final [altitude, velocity, angle]
+
+% New initial conditions for the second integration
+h0_new = final_values(1);
+v0_new = final_values(2);
+ang0_new = ang0-kick_angle;
+
+% Solve second system
+[t_second, y_second] = ode45(@(t,y) Fsyst(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S), kick_time:t_step:t_span, [h0_new; v0_new; ang0_new]);
+
+% Concatenate time and results for plotting
+t_combined = [t_initial; t_second];
+y_combined = [y_initial; y_second];
+
 
 % 5) Postprocess
 
 figure
 subplot(1,3,1)
-plot(t0,y0(:,1)/1000)
+plot(t_combined,y_combined(:,1)/1000)
 xlim([0 t_span])
 title('Altitude over time')
 xlabel('Time [s]')
@@ -66,7 +82,7 @@ grid on
 xline(kick_time, '--r', 'Gravity Turn Start');
 
 subplot(1,3,2)
-plot(t0,y0(:,2))
+plot(t_combined,y_combined(:,2))
 xlim([0 t_span])
 title('Velocity over time')
 xlabel('Time [s]')
@@ -75,7 +91,7 @@ grid on
 xline(kick_time, '--r', 'Gravity Turn Start');
 
 subplot(1,3,3)
-plot(t0,y0(:,3)*180/pi)
+plot(t_combined,y_combined(:,3)*180/pi)
 xlim([0 t_span])
 title('Flight path angle over time')
 xlabel('Time [s]')
