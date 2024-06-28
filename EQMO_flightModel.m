@@ -1,7 +1,7 @@
 clear; close all; clc;
 
 %% AN ANALITICAL APPROACH OF A ROCKET TRAJECTORY
-% Jan Canet, Marc Massons, Eduardo Jiménez, Albert Llonch
+% Jan Canet, Marc Massons, Eduardo JimÃ©nez, Albert Llonch
 
 % 1) Initial parameters and variables
 %% Me
@@ -35,11 +35,12 @@ Rg = R/(MM/1000); % Gas constant [J/kgK]
 Tc = 3594.6; % Chamber temperature [K]
 m_dot = MFP_Mt*Pc*At/sqrt(Rg*Tc);
 
+c_eff = F/m_dot
 % 2) Initial conditions
 
-h0 = 50e3; % [m]
-v0 = h0/118; % [m/s]
-ang0 = deg2rad(89); % [deg->rad]
+h0 = 0; % [m]
+v0 = 0; % [m/s]
+ang0 = deg2rad(70); % [deg->rad]
 
 % 3) Time span and time step
 
@@ -47,6 +48,8 @@ t_span = Wp/(m_dot*g50); % [s]
 t_step = 1e-3; % [s]
 
 % 4) Solver
+kick_time = 30; % time before starting gravity turn [s]
+kick_angle = degt2rad(25); % kick angle induced for gravity turn [deg->rad]
 
 [t0,y0] = ode45(@(t,y) Fsyst(t,y,g50,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S),0:t_step:t_span,[h0;v0;ang0]);
 
@@ -60,6 +63,7 @@ title('Altitude over time')
 xlabel('Time [s]')
 ylabel('Altitude [km]')
 grid on
+xline(kick_time, '--r', 'Gravity Turn Start');
 
 subplot(1,3,2)
 plot(t0,y0(:,2))
@@ -68,14 +72,16 @@ title('Velocity over time')
 xlabel('Time [s]')
 ylabel('Velocity [m/s]')
 grid on
+xline(kick_time, '--r', 'Gravity Turn Start');
 
 subplot(1,3,3)
 plot(t0,y0(:,3)*180/pi)
 xlim([0 t_span])
 title('Flight path angle over time')
 xlabel('Time [s]')
-ylabel('Flight path angle [º]')
+ylabel('Flight path angle [Âº]')
 grid on
+xline(kick_time, '--r', 'Gravity Turn Start');
 
 save t0.mat
 save y0.mat
