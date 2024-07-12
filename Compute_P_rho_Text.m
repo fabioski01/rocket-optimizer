@@ -2,10 +2,10 @@ function [Pext, rho, Text] = Compute_P_rho_Text(z)
 Rg = 8.31;
 MM = 28.9644/1000; % [kg/mol]
 r = Rg/MM;
-z = z/1000; % eqs works in km
+z = z/1000;
 
 % if z>=0 && z<11
-if z<11 % to keep going even with negative altitude errors
+if z<11
     Pext = 101325*(288.15/(288.15-6.5*z))^(34.1632/(-6.5));
     Text = 288.15 - 6.5*z;
     rho = Pext/(r*Text);
@@ -75,12 +75,18 @@ elseif z>=200 && z<300
     Text = 1000 - 640 * exp(-0.01875*(z-120)*(6356.766+ 120)/(6356.766 +z));
     rho = Pext/(r*Text);
     
+% elseif z>=300 && z<=500
 elseif z>=300 && z<=500
     Pext = exp(9.814674e-11 * z^4 - 1.654439e-7 * z^3 + 1.148115e-4 * z^2 - 0.05431334 * z - 2.011365);
     Text = 1000 - 640 * exp(-0.01875*(z-120)*(6356.766+ 120)/(6356.766 +z));
     rho = Pext/(r*Text);
+
+elseif z>500
+    Pext = 0;
+    Text = 1000 - 640 * exp(-0.01875*(z-120)*(6356.766+ 120)/(6356.766 +z));
+    rho = Pext/(r*Text);
     
 else
-    fprintf('Altitude out of range')
-    disp(z);
+    fprintf('Altitude out of range (%.2f km)',z)
+    
 end

@@ -1,0 +1,188 @@
+function [h_end,v_end,Ae] = flightModel(phi,n_st,n_e,M_prop,M_str)
+
+%% AN ANALITICAL APPROACH OF A ROCKET TRAJECTORY
+% Jan Canet, Fabio Meloni
+
+parameters;
+
+%% 1) Initial parameters and variables
+% Me
+Me = sym('Me','real');
+gamma = 1.1488;
+Ae_At = 21; % Exit to throat area ratio
+rel_arees = Ae_At == (2/(gamma+1))^(0.5*(gamma+1)/(gamma-1))*1/Me*(1+(gamma-1)/2*Me^2)^(0.5*(gamma+1)/(gamma-1));
+Me_V = vpasolve(rel_arees,Me);
+Me_V = double(Me_V); % Exit Mach number
+
+% CF & At
+pa_pc = 0.0094; % Initial pressure ratio
+CF_vac = (2/(gamma+1))^(0.5*(gamma+1)/(gamma-1))*(gamma*Me_V+1/Me_V)/sqrt(1+(gamma-1)/2*Me_V^2);
+MFP_Me = sqrt(gamma)*Me_V/(1+(gamma-1)/2*Me_V^2)^(0.5*(gamma+1)/(gamma-1));
+MFP_Mt = sqrt(gamma)*1/(1+(gamma-1)/2*1^2)^(0.5*(gamma+1)/(gamma-1));
+CF = CF_vac-pa_pc*MFP_Mt/MFP_Me;
+
+Wp = M_prop*g0; % Initial propellant weight [N]
+Ws = M_str*g0; % Initial structural weight [N]
+% Wu = 400*g0; % payload weight [N]
+Wu = M_pl*g0; % payload weight [N]
+W = sum(Wp)+sum(Ws)+Wu; % Initial weight [N]
+F = thrust_1e; % Initial thrust [N]
+Pc = 10.8e6; % Chamber pressure [Pa]
+At = F/(Pc*CF); % Throat area [m^2]
+Ae_sl = At*Ae_At;
+S = pi*(max(phi)/2)^2; % Rocket's maximum cross-section [m^2]
+
+% MASS FLOW RATE
+R = 8.314472; % Universal gas constant [J/molK]
+MM = 22.686; % Molecular mass [g/mol]
+Rg = R/(MM/1000); % Gas constant [J/kgK]
+Tc = 3655.73; % Chamber temperature [K]
+m_dot = MFP_Mt*Pc*At/sqrt(Rg*Tc);
+
+%% 2) Initial conditions
+h0 = 0.001; % [m]
+v0 = 0.001; % [m/s]
+ang0 = deg2rad(90); % [deg->rad]
+
+%% 3) Time span and time step
+t_span1 = Wp(end)/(m_dot*g0*n_e); % [s]
+t_step = 1e-3; % [s]
+
+%% 4) Solver
+% FIRST STAGE
+kick_time = t_span1*0.10; % time before starting gravity turn [s] 35
+kick_angle = deg2rad(10); % kick angle induced for gravity turn [deg->rad] 35
+t0 = 0;
+[t_1st_initial, y_1st_initial] = ode45(@(t,y) Fsyst(t,t0,y,g0,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S,n_e), 0:t_step:kick_time, [h0;v0;ang0]);
+% Extract final values
+final_values = y_1st_initial(end,:);  % Final [altitude, velocity, angle]
+% New initial conditions for the second integration
+h0_new = final_values(1);
+v0_new = final_values(2);
+ang0_new = ang0-kick_angle;
+% ang0_new = final_values(3);
+% Solve second system
+t0 = kick_time;
+[t_1st_final, y_1st_final] = ode45(@(t,y) Fsyst(t,t0,y,g0,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S,n_e), kick_time:t_step:t_span1, [h0_new;v0_new;ang0_new]);
+% Concatenate time and results for plotting
+t_1st_combined = [t_1st_initial; t_1st_final];
+y_1st_combined = [y_1st_initial; y_1st_final];
+
+% SECOND STAGE
+% Me
+Me = sym('Me','real');
+gamma = 1.1488;
+Ae_At = 116; % Exit to throat area ratio
+rel_arees = Ae_At == (2/(gamma+1))^(0.5*(gamma+1)/(gamma-1))*1/Me*(1+(gamma-1)/2*Me^2)^(0.5*(gamma+1)/(gamma-1));
+Me_V = vpasolve(rel_arees,Me);
+Me_V = double(Me_V); % Exit Mach number
+
+% CF & At
+pa_pc = 0.0094; % Initial pressure ratio
+CF_vac = (2/(gamma+1))^(0.5*(gamma+1)/(gamma-1))*(gamma*Me_V+1/Me_V)/sqrt(1+(gamma-1)/2*Me_V^2);
+MFP_Me = sqrt(gamma)*Me_V/(1+(gamma-1)/2*Me_V^2)^(0.5*(gamma+1)/(gamma-1));
+MFP_Mt = sqrt(gamma)*1/(1+(gamma-1)/2*1^2)^(0.5*(gamma+1)/(gamma-1));
+CF = CF_vac-pa_pc*MFP_Mt/MFP_Me;
+
+F = thrust_1e; % Initial thrust [N]
+Pc = 10.8e6; % Chamber pressure [Pa]
+At = F/(Pc*CF); % Throat area [m^2]
+Ae_vac = At*Ae_At;
+S = pi*(max(phi(1:end-1))/2)^2; % Rocket's maximum cross-section [m^2]
+
+% MASS FLOW RATE
+R = 8.314472; % Universal gas constant [J/molK]
+MM = 22.686; % Molecular mass [g/mol]
+Rg = R/(MM/1000); % Gas constant [J/kgK]
+Tc = 3655.73; % Chamber temperature [K]
+m_dot = MFP_Mt*Pc*At/sqrt(Rg*Tc);
+t_span23 = Wp(1:end-1)./(m_dot*g0); % [s]
+
+second_stage_initial = y_1st_final(end,:);  % Final [altitude, velocity, angle]
+% New initial conditions for the integration of second stage
+h0_2nd = second_stage_initial(1);
+v0_2nd = second_stage_initial(2);
+ang0_2nd = second_stage_initial(3);
+% Solve system of 2nd stage
+W = W - Ws(end) - Wp(end);
+t0 = t_span1;
+[t_2nd, y_2nd] = ode45(@(t,y) Fsyst(t,t0,y,g0,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S,1), t_span1:t_step:(t_span1+t_span23(1)), [h0_2nd;v0_2nd;ang0_2nd]);
+
+if (n_st == 3)
+    % THIRD STAGE
+    third_stage_initial = y_2nd(end,:);  % Final [altitude, velocity, angle]
+    % New initial conditions for the integration of second stage
+    h0_3rd = third_stage_initial(1);
+    v0_3rd = third_stage_initial(2);
+    ang0_3rd = third_stage_initial(3);
+    % Solve system of 3rd stage
+    W = W - Ws(end-1) - Wp(end-1);
+    t0 = (t_span1+t_span23(end-1));
+    [t_3rd, y_3rd] = ode45(@(t,y) Fsyst(t,t0,y,g0,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S,1), (t_span1+t_span23(1)):t_step:(t_span1+sum(t_span23)), [h0_3rd;v0_3rd;ang0_3rd]);
+
+    inertial_stage_initial = y_3rd(end,:);
+    h0_inr = inertial_stage_initial(1);
+    v0_inr = inertial_stage_initial(2);
+    ang0_inr = inertial_stage_initial(3);
+    [t_inr, y_inr] = ode45(@(t,y) Fsyst2(y), (t_span1+sum(t_span23)):t_step:(t_span1+sum(t_span23))+20, [h0_inr;v0_inr;ang0_inr]);
+end
+
+
+% 5) Postprocess
+figure
+subplot(3,1,1);
+plot(t_1st_combined, y_1st_combined(:,1)/1000,'b') 
+hold on
+plot(t_2nd, y_2nd(:,1)/1000,'g')
+if (n_st == 3)
+    plot(t_3rd, y_3rd(:,1)/1000,'r')
+    plot(t_inr, y_inr(:,1)/1000,'--k')
+end
+xlabel('Time [s]')
+ylabel('Altitude [km]')
+title('Altitude over time')
+grid on
+
+subplot(3,1,2);
+plot(t_1st_combined, y_1st_combined(:,2)/1000,'b')
+hold on
+plot(t_2nd, y_2nd(:,2)/1000,'g')
+if (n_st == 3)
+    plot(t_3rd, y_3rd(:,2)/1000,'r')
+    plot(t_inr, y_inr(:,2)/1000,'--k')
+end
+xlabel('Time [s]')
+ylabel('Velocity [km/s]')
+title('Velocity over time')
+grid on
+
+subplot(3,1,3);
+plot(t_1st_combined, y_1st_combined(:,3) * 180/pi,'b')
+hold on
+plot(t_2nd, y_2nd(:,3) * 180/pi,'g')
+if (n_st == 3)
+    plot(t_3rd, y_3rd(:,3) * 180/pi,'r')
+    plot(t_inr, y_inr(:,3) * 180/pi,'--k')
+end
+xlabel('Time [s]')
+ylabel('Flight path angle [°]')
+title('Flight path angle over time')
+grid on
+
+if (n_st == 3)
+    h_end = y_3rd(end,1);
+    v_end = y_3rd(end,2);
+    Ae = [Ae_vac,Ae_sl];
+else
+    h_end = y_2nd(end,1);
+    v_end = y_2nd(end,2);
+    Ae = [Ae_vac,Ae_sl];
+end
+
+end
+
+
+
+
+
+

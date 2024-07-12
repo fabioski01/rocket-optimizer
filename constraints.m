@@ -1,4 +1,4 @@
-function g = constraints(phi,th,L,n_st,n_e)
+function [g,h] = constraints(phi,th,L,n_st,n_e)
 
 % Define constant parameters
 alpha = 0; % initialize variable such that matlab does not use its built-in function
@@ -8,22 +8,20 @@ num = 100;              % Number of evaluated points per component
 thrust = thrust_1e*n_e; % Total SL thrust [N]
 
 for i = 1:n_st-1
-    l_23(i,:) = [L(i)-L_eng_vac, L_eng_vac];
-    A_23(i,:) = [pi*(phi(i)/2)^2, pi*(phi(i)/2)^2];
-    Ac_23(i,:) = [pi*((phi(i)/2)^2 - (phi(i)/2-th(i))^2),...
+    l_23(:,i) = [L(i)-L_eng_vac; L_eng_vac];
+    A_23(:,i) = [pi*(phi(i)/2)^2; pi*(phi(i)/2)^2];
+    Ac_23(:,i) = [pi*((phi(i)/2)^2 - (phi(i)/2-th(i))^2);...
                   pi*((phi(i)/2)^2 - (phi(i)/2-th(i))^2)];
-    Z_23(i,:) = [pi*((phi(i)/2)^4 - (phi(i)/2-th(i))^4)/(4*phi(i)/2),...
+    Z_23(:,i) = [pi*((phi(i)/2)^4 - (phi(i)/2-th(i))^4)/(4*phi(i)/2);...
                  pi*((phi(i)/2)^4 - (phi(i)/2-th(i))^4)/(4*phi(i)/2)];
-    I_23(i,:) = [pi/64*(phi(i)^4 - (phi(i)-2*th(i))^4),...
+    I_23(:,i) = [pi/64*(phi(i)^4 - (phi(i)-2*th(i))^4);...
                  pi/64*(phi(i)^4 - (phi(i)-2*th(i))^4)];
 end
-if (n_st == 3)
-    l_23 = reshape(l_23,1,[]);
-    A_23 = reshape(A_23,1,[]);
-    Ac_23 = reshape(Ac_23,1,[]);
-    Z_23 = reshape(Z_23,1,[]);
-    I_23 = reshape(I_23,1,[]);
-end
+l_23 = reshape(l_23,1,[]);
+A_23 = reshape(A_23,1,[]);
+Ac_23 = reshape(Ac_23,1,[]);
+Z_23 = reshape(Z_23,1,[]);
+I_23 = reshape(I_23,1,[]);
 
 A = [pi*(phi_pl/2)^2, pi*(phi_pl/2)^2, pi*(phi_pl/2)^2,...
      A_23,...
@@ -66,11 +64,9 @@ for i = 1:n_st-1
     M_prop(i) = V_tank_23*rho_prop;
     V_shell_23 = pi*(phi(i)/2)^2*l(2*i+2) - V_tank_23; % Volume of the rocket shell for the lenght of a single tank [m^3]
     V_eng_vac = pi*(phi(i)/2)^2*l(2*i+3) - pi*(phi(i)/2 - th(i))^2*l(2*i+3); % Volume of the rocket shell for the lenght of a vacuum engine [m^3]
-    M_23(i,:) = [V_shell_23*rho + M_prop(i), V_eng_vac*rho + M_eng_vac];
+    M_23(:,i) = [V_shell_23*rho + M_prop(i); V_eng_vac*rho + M_eng_vac];
 end
-if (n_st == 3)
-    M_23 = reshape(M_23,1,[]);
-end
+M_23 = reshape(M_23,1,[]);
 
 M_prop(end) = V_tank*rho_prop;
 M = [V1*rho, V2*rho + M_pl, V3*rho,...
@@ -224,11 +220,10 @@ for i = 1:length(l)
 end
 
 for i = 1:n_st-1
-    den_23(i,:) = [L(i)^2*phi(i)*th(i), L(i)^2*phi(i)*th(i)];
+    den_23(:,i) = [L(i)^2*phi(i)*th(i); L(i)^2*phi(i)*th(i)];
 end
-if (n_st == 3)
-    den_23 = reshape(den_23,1,[]);
-end
+den_23 = reshape(den_23,1,[]);
+
 den = [L_pl^2*phi_pl*th_pl, L_pl^2*phi_pl*th_pl, L_pl^2*phi_pl*th_pl,...
        den_23,...
        L(end)^2*phi(end)*th(end), L(end)^2*phi(end)*th(end)];
@@ -263,9 +258,26 @@ sig_s_max = max(abs(sig_shear));
 % axis equal
 
 
+%% FLIGHT MODEL
+
+for i = 1:n_st-1
+    V_tank_23 = pi*(phi(i)/2 - th(i))^2*l(2*i+2);
+    V_shell_23 = pi*(phi(i)/2)^2*l(2*i+2) - V_tank_23; % Volume of the rocket shell for the lenght of a single tank [m^3]
+    V_eng_vac = pi*(phi(i)/2)^2*l(2*i+3) - pi*(phi(i)/2 - th(i))^2*l(2*i+3); % Volume of the rocket shell for the lenght of a vacuum engine [m^3]
+    M_str23(i) = V_shell_23*rho + V_eng_vac*rho + M_eng_vac;
+end
+M_str23 = reshape(M_str23,1,[]);
+
+M_str = [V1*rho + V2*rho + V3*rho,...
+         M_str23,...
+         V_shell*rho + V_eng_sl*rho + M_eng_sl*n_e]; % Structural mass [kg]
+
+[h_end,v_end,Ae] = flightModel(phi,n_st,n_e,M_prop,M_str);
+
+
 %% CONSTRAINTS
 
-g = zeros(1,n_st*6 + n_st-1);
+g = zeros(1,8*n_st);
 for i = n_st:-1:1
     sig_c_max_st = max(sig_c_max([i*2+3-1,i*2+3]));
     sig_t_max_st = max(sig_t_max([i*2+3-1,i*2+3]));
@@ -283,5 +295,22 @@ end
 for i = 1:n_st-1
     g(6*n_st+i) = phi(i)/phi(i+1) - 1; % g7
 end
+
+for i = 1:n_st
+    Aexit = Ae(1);
+    phi_e = 2*sqrt(Aexit/pi);
+    g(7*n_st-1+i) = 1 - ((phi(i)-2*th(i))/phi_e)^2; % g8
+    if ((n_st==2) && (i==n_st)) || ((n_st==3) && (i==n_st))
+        Aexit = Ae(2);
+        phi_e = 2*sqrt(Aexit/pi);
+        g(7*n_st-1+i) = 1 - 1/n_e*((phi(i)-2*th(i))/phi_e)^2; % g8
+    end
+end
+
+g(end) = 1 - v_end/v_tar; % g9
+
+h = zeros(1,1);
+h(1) = h_end/h_tar - 1;
+
 
 end
