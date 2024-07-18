@@ -1,4 +1,4 @@
-function [h_end,v_end,Ae,q] = flightModel(phi,n_st,n_e,M_prop,M_str)
+function [h_end,v_end,Ae] = flightModel(phi,n_st,n_e,M_prop,M_str)
 
 %% AN ANALITICAL APPROACH OF A ROCKET TRAJECTORY
 % Jan Canet, Fabio Meloni
@@ -165,7 +165,7 @@ if (n_st == 3)
     plot(t_inr, y_inr(:,3) * 180/pi,'--k')
 end
 xlabel('Time [s]')
-ylabel('Flight path angle [°]')
+ylabel('Flight path angle [Â°]')
 title('Flight path angle over time')
 grid on
 
@@ -184,23 +184,17 @@ end
 if (n_st == 3)
     altitude = [y_1st_combined(:,1); y_2nd(:,1); y_3rd(:,1)];
     velocity = [y_1st_combined(:,2); y_2nd(:,2); y_3rd(:,2)];
-    time = [t_1st_combined; t_2nd; t_3rd];
+    time = [];
 else
     altitude = [y_1st_combined(:,1); y_2nd(:,1)];
     velocity = [y_1st_combined(:,2); y_2nd(:,2)];
-    time = [t_1st_combined; t_2nd];
 end
 for i = 1:length(altitude)
     [~, density(i), ~] = Compute_P_rho_Text(altitude(i));
 end
-dyn_pressure = 0.5*density.'.*velocity.^2;
+dyn_pressure = 0.5*density.*velocity.^2;
 q = max(dyn_pressure);
 
-figure
-plot(time,dyn_pressure/1000)
-xlabel('Time [s]')
-ylabel('Dynamic Pressure [kPa]')
-title('Dynamic pressure over time')
-grid on
+
 
 

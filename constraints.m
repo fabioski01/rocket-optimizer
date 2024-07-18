@@ -7,6 +7,9 @@ parameters;
 num = 100;              % Number of evaluated points per component
 thrust = thrust_1e*n_e; % Total SL thrust [N]
 
+
+%% STRUCTURAL MODEL
+
 for i = 1:n_st-1
     l_23(:,i) = [L(i)-L_eng_vac; L_eng_vac];
     A_23(:,i) = [pi*(phi(i)/2)^2; pi*(phi(i)/2)^2];
@@ -120,6 +123,26 @@ for i = 1:length(l)
     suma = l(i) + suma;
 end
 CG = sum(m.*l.*cg)/sum(m.*l); % Total CoG [m]
+
+
+%%-------------------------------------------------------
+%% FLIGHT MODEL
+
+for i = 1:n_st-1
+    V_tank_23 = pi*(phi(i)/2 - th(i))^2*l(2*i+2);
+    V_shell_23 = pi*(phi(i)/2)^2*l(2*i+2) - V_tank_23; % Volume of the rocket shell for the lenght of a single tank [m^3]
+    V_eng_vac = pi*(phi(i)/2)^2*l(2*i+3) - pi*(phi(i)/2 - th(i))^2*l(2*i+3); % Volume of the rocket shell for the lenght of a vacuum engine [m^3]
+    M_str23(i) = V_shell_23*rho + V_eng_vac*rho + M_eng_vac;
+end
+M_str23 = reshape(M_str23,1,[]);
+
+M_str = [V1*rho + V2*rho + V3*rho,...
+         M_str23,...
+         V_shell*rho + V_eng_sl*rho + M_eng_sl*n_e]; % Structural mass [kg]
+
+[h_end,v_end,Ae,q] = flightModel(phi,n_st,n_e,M_prop,M_str);
+%%-------------------------------------------------------
+
 
 t = zeros(1,length(l));
 t(end) = thrust;
@@ -256,23 +279,6 @@ sig_s_max = max(abs(sig_shear));
 % plot([sum(l(1:5)), sum(l(1:5))],[-phi/2, phi/2],'k')
 % plot([sum(l(1:7)), sum(l(1:7))],[-phi/2, phi/2],'k')
 % axis equal
-
-
-%% FLIGHT MODEL
-
-for i = 1:n_st-1
-    V_tank_23 = pi*(phi(i)/2 - th(i))^2*l(2*i+2);
-    V_shell_23 = pi*(phi(i)/2)^2*l(2*i+2) - V_tank_23; % Volume of the rocket shell for the lenght of a single tank [m^3]
-    V_eng_vac = pi*(phi(i)/2)^2*l(2*i+3) - pi*(phi(i)/2 - th(i))^2*l(2*i+3); % Volume of the rocket shell for the lenght of a vacuum engine [m^3]
-    M_str23(i) = V_shell_23*rho + V_eng_vac*rho + M_eng_vac;
-end
-M_str23 = reshape(M_str23,1,[]);
-
-M_str = [V1*rho + V2*rho + V3*rho,...
-         M_str23,...
-         V_shell*rho + V_eng_sl*rho + M_eng_sl*n_e]; % Structural mass [kg]
-
-[h_end,v_end,Ae] = flightModel(phi,n_st,n_e,M_prop,M_str);
 
 
 %% CONSTRAINTS

@@ -13,7 +13,6 @@ L_eng_vac = 6;          % Longitude of vacuum engine [m]
 L_eng_sl = 3;           % Longitude of sea level engine [m]
 rho_prop = 1000;        % Density of the propellant [kg/m^3]
 
-q = 0.5*1.225*100^2;    % Maximum dynamic pressure [Pa]
 alpha = deg2rad(0.5);   % Angle of attack [deg->rad]
 g0 = 9.81;              % Gravitational acceleration at Earth's surface [m/s^2]
 thrust_1e = 900e3;      % Thrust of one SL engine [N]
