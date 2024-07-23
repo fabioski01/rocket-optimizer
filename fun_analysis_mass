@@ -29,7 +29,7 @@ end
 %% Continuous variable
 figure;
 subplot(3,1,1);
-plot(phi_range, f_phi, '-o');
+plot(phi_range, f_phi, '-');
 xlabel('1st Stage Diameter [m]');
 ylabel('Structural Mass [kg]');
 title('Objective Function Analysis: Diameter 1st stage');
@@ -45,7 +45,7 @@ for i = 1:length(th_range)
 end
 
 subplot(3,1,2);
-plot(th_range, f_th, '-o');
+plot(th_range, f_th, '-');
 xlabel('1st Stage Wall Thickness [m]');
 ylabel('Structural Mass [kg]');
 title('Objective Function Analysis: Wall Thickness 1 stage');
@@ -61,7 +61,7 @@ for i = 1:length(L_range)
 end
 
 subplot(3,1,3);
-plot(L_range, f_L, '-o');
+plot(L_range, f_L, '-');
 xlabel('1st Stage Length [m]');
 ylabel('Structural Mass [kg]');
 title('Objective Function Analysis: Length 1 stage');
@@ -70,10 +70,11 @@ grid on;
 
 %% Discrete variables
 % Objective Function analysis for n_st
-n_st_values = 1:1:3; % cant go more than 3 due to how other functions are defined
+n_st_values = 2:1:3; % cant go more than 3 due to how other functions are defined. Also no less than 2 because how the code is defined
 f_n_st = zeros(size(n_st_values));
 total_L = sum(L)
-L_loop = [total_L, total_L/2, total_L/3];
+% L_loop = [total_L, total_L/2, total_L/3];
+L_loop = [total_L/2, total_L/3];
 % L_loop = [30, 15, 10];
 f_L = zeros(size(L_loop));
 for i = 1:length(L_loop)
@@ -93,8 +94,13 @@ grid on;
 
 % Annotate points with L values
 for i = 1:length(n_st_values)
-    text(n_st_values(i), f_n_st(i), ['L = ', num2str(L_loop(i))], 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
+    text(n_st_values(i), f_n_st(i), ['L[m] = ', num2str(L_loop(i))], 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
 end
+
+% Set x-ticks to only show 2 and 3
+xticks([2 3]);
+xticklabels({'2', '3'});
+
 
 % Objective Function analysis for n_e
 n_e_values = 1:1:n_e_range;
