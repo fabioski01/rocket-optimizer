@@ -17,13 +17,13 @@ n_e = 6;   % Number of engines (in the 1st stage)
 parameters;
 
 % Objective function
-f = structural_mass(phi,th,L,n_st,n_e);
+% f = structural_mass(phi,th,L,n_st,n_e);
 
 % Constraints
-[g,h] = constraints(phi,th,L,n_st,n_e);
+% [g,h] = constraints(phi,th,L,n_st,n_e);
 
 % Sensitivity analysis
-% gfd_mass(phi,th,L,n_st,n_e);
+gfd_mass(phi,th,L,n_st,n_e);
 
 % Function analysis
 % range_phi = 12; % [m] range for variation of 1st stage diameter
