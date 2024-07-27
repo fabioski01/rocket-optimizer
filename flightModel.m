@@ -138,6 +138,7 @@ if (n_st == 3)
     plot(t_3rd, y_3rd(:,1)/1000,'r')
     plot(t_inr, y_inr(:,1)/1000,'--k')
 end
+yline(h_tar/1000, 'y--', 'LineWidth', 1.5);
 xlabel('Time [s]')
 ylabel('Altitude [km]')
 title('Altitude over time')
@@ -151,6 +152,7 @@ if (n_st == 3)
     plot(t_3rd, y_3rd(:,2)/1000,'r')
     plot(t_inr, y_inr(:,2)/1000,'--k')
 end
+yline(v_tar/1000, 'k--', 'LineWidth', 1.5);
 xlabel('Time [s]')
 ylabel('Velocity [km/s]')
 title('Velocity over time')
@@ -164,8 +166,9 @@ if (n_st == 3)
     plot(t_3rd, y_3rd(:,3) * 180/pi,'r')
     plot(t_inr, y_inr(:,3) * 180/pi,'--k')
 end
+yline(0, 'k--', 'LineWidth', 1.5);
 xlabel('Time [s]')
-ylabel('Flight path angle [°]')
+ylabel('Flight path angle [Â°]')
 title('Flight path angle over time')
 grid on
 
