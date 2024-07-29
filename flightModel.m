@@ -5,6 +5,34 @@ function [h_end,v_end,Ae,q] = flightModel(phi,n_st,n_e,M_prop,M_str)
 
 parameters;
 
+% % Definition of parameters
+% 
+% phi_pl = 5;             % Payload fairing diameter [m]
+% L_pl = 12;              % Payload fairing length [m]
+% th_pl = 0.005;          % Payload fairing thickness [m]
+% 
+% M_pl = 7000;            % Payload mass [kg]
+% 
+% M_eng_vac = 500;        % Vacuum engine mass [kg]
+% M_eng_sl = 470;         % Sea level engine mass [kg]
+% L_eng_vac = 6;          % Longitude of vacuum engine [m]
+% L_eng_sl = 3;           % Longitude of sea level engine [m]
+% rho_prop = 1000;        % Density of the propellant [kg/m^3]
+% 
+% alpha = deg2rad(0.5);   % Angle of attack [deg->rad]
+% g0 = 9.81;              % Gravitational acceleration at Earth's surface [m/s^2]
+% thrust_1e = 900e3;      % Thrust of one SL engine [N]
+% SF = 2;                 % Safety factor
+% 
+% rho = 2550;             % Structural material density [kg/m^3]
+% E = 77e9;               % Young modulus [Pa]
+% sig_y = 210e6;          % Yield strength [Pa]
+% sig_s = 200e6;          % Shear strength [Pa]
+% 
+% h_tar = 300e3;          % Target orbital altitude [m]
+% v_tar = 7.73e3;         % Target orbital velocity [m/s]
+
+
 %% 1) Initial parameters and variables
 % Me
 Me = sym('Me','real');
@@ -48,10 +76,60 @@ ang0 = deg2rad(90); % [deg->rad]
 t_span1 = Wp(end)/(m_dot*g0*n_e); % [s]
 t_step = 1e-3; % [s]
 
+%% Optimize kick_time and kick_angle
+
+% KICK ANGLE STUFF WHICH NEEDS TO BE AUTOMATED so that the flight path angle reaches 0 before the end of the burn (and stays at zero)!!!
+% kick_time = t_span1*0.145; % time before starting gravity turn [s] 35
+% kick_angle = deg2rad(9); % kick angle induced for gravity turn [deg->rad] 35
+
+% % Define parameters for the objective function and constraints
+% parameters.g0 = g0;
+% parameters.W = W;
+% parameters.m_dot = m_dot;
+% parameters.gamma = gamma;
+% parameters.Rg = Rg;
+% parameters.CF_vac = CF_vac;
+% parameters.Pc = Pc;
+% parameters.MFP_Me = MFP_Me;
+% parameters.MFP_Mt = MFP_Mt;
+% parameters.At = At;
+% parameters.S = S;
+% parameters.n_e = n_e;
+% parameters.t_span1 = t_span1;
+% parameters.t_step = t_step;
+% parameters.h0 = h0;
+% parameters.v0 = v0;
+% parameters.ang0 = ang0;
+
+% Initial guess for [kick_time, kick_angle]
+x0 = [t_span1 * 0.145, deg2rad(9)];
+
+% Set optimization options
+options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'interior-point');
+
+% Define lower and upper bounds for [kick_time, kick_angle]
+lb = [1, deg2rad(1)]; % lower bounds
+ub = [t_span1, deg2rad(60)]; % upper bounds
+
+% Run the optimization
+obj_flightangle = @(x) objectiveFlightAngle(x, phi,n_st,n_e,M_prop,M_str);
+% Optimize
+x_opt = fmincon(obj_flightangle, x0, [], [], [], [], lb, ub, [], options);
+
+% Extract optimal values
+kick_time_opt = x_opt(1);
+kick_angle_opt = x_opt(2);
+
+% Display optimal values
+disp(['Optimal kick time: ', num2str(kick_time_opt)]);
+disp(['Optimal kick angle: ', num2str(rad2deg(kick_angle_opt))]);
+
+% Use the optimized kick_time and kick_angle in the main script
+kick_time = kick_time_opt;
+kick_angle = kick_angle_opt;
+
 %% 4) Solver
 % FIRST STAGE
-kick_time = t_span1*0.10; % time before starting gravity turn [s] 35
-kick_angle = deg2rad(10); % kick angle induced for gravity turn [deg->rad] 35
 t0 = 0;
 [t_1st_initial, y_1st_initial] = ode45(@(t,y) Fsyst(t,t0,y,g0,W,m_dot,gamma,Rg,CF_vac,Pc,MFP_Me,MFP_Mt,At,S,n_e), 0:t_step:kick_time, [h0;v0;ang0]);
 % Extract final values
@@ -205,5 +283,3 @@ xlabel('Time [s]')
 ylabel('Dynamic Pressure [kPa]')
 title('Dynamic pressure over time')
 grid on
-
-
