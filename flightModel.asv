@@ -106,8 +106,8 @@ x0 = [t_span1 * 0.145, deg2rad(9)];
 
 % % Set optimization options
 % options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'interior-point');
-% Set optimization options for fminunc with Quasi-Newton method
-options = optimoptions('fminunc', 'Display', 'iter', 'Algorithm', 'quasi-newton');
+% Set optimization options for fminunc with Newton's method
+options = optimoptions('fminunc', 'Display', 'iter', 'Algorithm', 'trust-region');
 
 % % Define lower and upper bounds for [kick_time, kick_angle] for fmincon
 % lb = [1, deg2rad(1)]; % lower bounds
